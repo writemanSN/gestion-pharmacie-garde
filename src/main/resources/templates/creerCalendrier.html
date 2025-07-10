@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 56px; /* hauteur navbar */
+            left: 0;
+            width: 220px;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            color: #ccc;
+            display: block;
+            padding: 10px 20px;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover, .sidebar .active {
+            background-color: #495057;
+            color: #fff;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 220px;
+            margin-top: 56px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #222;
+            color: #aaa;
+            font-size: 0.85rem; /* 🔽 police réduite */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Pharmacie de Garde</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+
+        <!-- Profil -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto me-3">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle fs-4 text-light"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li class="dropdown-item text-muted" th:text="${email}">email@example.com</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/profil}">Profil</a></li>
+                        <li><a class="dropdown-item" th:href="@{/logout}">Déconnexion</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil</a>
+    <a th:href="@{/responsable/pharmacie}">🏥 Gestion Pharmacie</a>
+    <a th:href="@{/responsable/calendrier}">🗓️ Créer Calendrier</a>
+    <a th:href="@{/responsable/VoirCalendrier}">📊 Voir Calendrier</a>
+    <a th:href="@{/responsable/support}">📧 Support</a> <br><br><br><br><br><br><br>
+    <footer>
+        <p>&copy; 2025 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>MballoWebDesign</strong></p>
+    </footer>
+</div>
+
+<!-- Contenu principal -->
+<div class="main-content">
+    <div class="container">
+        <h3 class="text-center mb-4">Créer un calendrier</h3>
+
+        <form th:action="@{/responsable/calendrier/enregistrer}" th:object="${calendrier}" method="post">
+            <div class="mb-3">
+                <label>Nom du calendrier</label>
+                <input type="text" class="form-control" th:field="*{nom}" placeholder="Ex : Garde Avril - Juin" required />
+            </div>
+
+            <div class="mb-3">
+                <label>Date début(Annee-Mois-Jour)</label>
+                <input type="date" class="form-control" th:field="*{dateDebut}" required />
+            </div>
+
+            <div class="mb-3">
+                <label>Date fin(Annee-Mois-Jour)</label>
+                <input type="date" class="form-control" th:field="*{dateFin}" required />
+            </div>
+
+            <div class="mb-3">
+                <label>Nombre de groupes</label>
+                <select class="form-select" th:field="*{nombreGroupes}" required>
+                    <option value="" disabled selected>-- Choisir --</option>
+                    <option th:each="i : ${#numbers.sequence(1, 10)}"
+                            th:value="${i}"
+                            th:text="${i}">
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">
+                    Suivant <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Footer -->
+
+
+</body>
+</html>

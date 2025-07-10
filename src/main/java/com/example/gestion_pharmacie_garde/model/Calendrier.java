@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Data
@@ -24,4 +25,7 @@ public class Calendrier {
     @ManyToOne
     @JoinColumn(name = "responsable_id")
     private Responsable responsable;
+
+    @OneToMany(mappedBy = "calendrier", cascade = CascadeType.ALL)
+    private List<Groupe> groupes;
 }

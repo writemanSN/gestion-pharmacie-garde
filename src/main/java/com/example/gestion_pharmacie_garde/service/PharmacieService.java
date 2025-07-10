@@ -29,5 +29,10 @@ public class PharmacieService {
                 .orElseThrow(() -> new RuntimeException("Pharmacie non trouvée avec l'id : " + id));
     }
 
+    public Pharmacie getById(Long id) {
+        return pharmacieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Calendrier introuvable pour l'ID : " + id));
+    }
+
 
 }

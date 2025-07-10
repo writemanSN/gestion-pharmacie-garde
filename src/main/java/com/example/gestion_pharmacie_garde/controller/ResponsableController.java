@@ -1,19 +1,24 @@
 package com.example.gestion_pharmacie_garde.controller;
 
+import com.example.gestion_pharmacie_garde.model.Calendrier;
+import com.example.gestion_pharmacie_garde.model.Groupe;
 import com.example.gestion_pharmacie_garde.model.Pharmacie;
 import com.example.gestion_pharmacie_garde.model.Responsable;
+import com.example.gestion_pharmacie_garde.service.CalendrierService;
+import com.example.gestion_pharmacie_garde.service.GroupeService;
 import com.example.gestion_pharmacie_garde.service.PharmacieService;
 import com.example.gestion_pharmacie_garde.service.ResponsableService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class ResponsableController {
@@ -22,6 +27,12 @@ public class ResponsableController {
 
     @Autowired
     private PharmacieService pharmacieService;
+
+    @Autowired
+    private CalendrierService calendrierService;
+
+    @Autowired
+    private GroupeService  groupeService;
 
     @GetMapping("/responsable/accueil")
     public String afficherAccueilResponsable(Model model, Principal principal) {
@@ -113,5 +124,125 @@ public class ResponsableController {
 
         return "redirect:/responsable/pharmacie?updateSuccess";
     }
+
+    @GetMapping("/responsable/calendrier")
+    public String afficherFormulaireCalendrier(Model model, Principal principal) {
+        String email = principal.getName();
+
+        Responsable responsable = responsableService
+                .RechercherByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
+
+        Calendrier calendrier = new Calendrier();
+        model.addAttribute("calendrier", calendrier);
+
+        model.addAttribute("email", email);
+        model.addAttribute("responsable", responsable); // utile si tu veux afficher les infos de l'utilisateur
+
+        return "creerCalendrier"; // ne pas faire "redirect:/responsable"
+    }
+
+    @PostMapping("/responsable/calendrier/enregistrer")
+    public String enregistrerCalendrier(@ModelAttribute Calendrier calendrier,Model model, Principal principal) {
+        String email = principal.getName();
+        Responsable responsable = responsableService
+                .RechercherByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Responsable non trouvé"));
+
+        calendrier.setResponsable(responsable);
+        calendrierService.ajouteCalendrier(calendrier);
+
+        // 👉 Redirige vers l'étape suivante pour créer les groupes
+        return "redirect:/responsable/calendrier/groupes?calendrierId=" + calendrier.getId();
+    }
+
+    @GetMapping("/responsable/calendrier/groupes")
+    public String afficherFormulaireGroupes(@RequestParam Long calendrierId, Model model) {
+        Calendrier calendrier = calendrierService.trouverParId(calendrierId);
+
+        model.addAttribute("calendrier", calendrier);
+        model.addAttribute("pharmacies", pharmacieService.getAll());
+        model.addAttribute("nombreGroupes", calendrier.getNombreGroupes());
+
+        return "groupesCalendrier"; // la page avec les selects multiples
+    }
+
+    @PostMapping("/responsable/calendrier/groupes/enregistrer")
+    public String enregistrerGroupes(@RequestParam Long calendrierId, HttpServletRequest request) {
+
+        Calendrier calendrier = calendrierService.getById(calendrierId);
+
+        Map<Integer, List<Pharmacie>> groupesMap = new HashMap<>();
+
+        // On boucle sur les paramètres de la requête
+        request.getParameterMap().forEach((paramName, values) -> {
+            if (paramName.startsWith("groupes[")) {
+                String numeroStr = paramName.substring(8, paramName.length() - 1); // extrait 1 de groupes[1]
+                int numeroGroupe = Integer.parseInt(numeroStr);
+
+                List<Pharmacie> pharmacies = Arrays.stream(values)
+                        .map(idStr -> pharmacieService.getById(Long.parseLong(idStr)))
+                        .collect(Collectors.toList());
+
+                groupesMap.put(numeroGroupe, pharmacies);
+            }
+        });
+
+        // Sauvegarde des groupes
+        groupesMap.forEach((numero, pharmacies) -> {
+            Groupe groupe = new Groupe();
+            groupe.setNumero(numero);
+            groupe.setCalendrier(calendrier);
+            groupe.setPharmacies(pharmacies);
+            groupeService.ajouterGroupe(groupe);
+        });
+
+        return "redirect:/responsable/VoirCalendrier";
+
+    }
+
+
+    @GetMapping("/responsable/VoirCalendrier")
+    public String voirTousLesCalendriers(Model model, Principal principal) {
+        String email = principal.getName();
+        Responsable responsable = responsableService.RechercherByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
+
+        List<Calendrier> calendriers = calendrierService.getAll()
+                .stream()
+                .filter(c -> c.getResponsable().getId().equals(responsable.getId()))
+                .collect(Collectors.toList());
+
+        Map<Long, List<String>> affectations = new HashMap<>();
+
+        for (Calendrier calendrier : calendriers) {
+            List<Groupe> groupes = groupeService.findByCalendrierId(calendrier.getId());
+
+            List<String> calendrierHebdo = new ArrayList<>();
+            LocalDate debut = calendrier.getDateDebut();
+            LocalDate fin = calendrier.getDateFin();
+            int nbSemaines = (int) ChronoUnit.WEEKS.between(debut, fin);
+            int totalGroupes = groupes.size();
+
+            if (totalGroupes == 0) {
+                calendrierHebdo.add("Aucun groupe associé à ce calendrier.");
+            } else {
+                for (int i = 0; i <= nbSemaines; i++) {
+                    Groupe groupe = groupes.get(i % totalGroupes);
+                    LocalDate debutSemaine = debut.plusWeeks(i);
+                    LocalDate finSemaine = debutSemaine.plusDays(6);
+                    calendrierHebdo.add("Semaine " + (i + 1) + ": Groupe " + groupe.getNumero() + " → du " + debutSemaine + " au " + finSemaine);
+                }
+            }
+
+            affectations.put(calendrier.getId(), calendrierHebdo);
+        }
+
+        model.addAttribute("calendriers", calendriers);
+        model.addAttribute("affectations", affectations);
+
+        return "calendrier"; // nom du fichier Thymeleaf
+    }
+
 
 }

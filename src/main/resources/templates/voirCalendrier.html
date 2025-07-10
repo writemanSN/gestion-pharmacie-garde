@@ -43,6 +43,7 @@
             margin-left: 220px;
             margin-top: 56px;
             padding: 20px;
+            flex: 1;
         }
 
         footer {
@@ -50,7 +51,7 @@
             padding: 10px;
             background-color: #222;
             color: #aaa;
-            margin-top: 50px;
+            font-size: 0.85rem; /* 🔽 police réduite */
         }
     </style>
 </head>
@@ -78,8 +79,8 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li class="dropdown-item text-muted" th:text="${email}">email@example.com</li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/login}">Responsable</a></li>
-                        <li><a class="dropdown-item" th:href="@{/login}">Admin</a></li>
+                        <li><a class="dropdown-item" th:href="@{/profil}">Profil</a></li>
+                        <li><a class="dropdown-item" th:href="@{/logout}">Déconnexion</a></li>
                     </ul>
                 </li>
             </ul>
@@ -89,24 +90,25 @@
 
 <!-- Sidebar -->
 <div class="sidebar">
-    <a th:href="@{/responsable/dashboard}" class="active">🏠 Accueil</a>
-    <a th:href="@{/responsable/pharmacies}">🏥 Gérer Pharmacies</a>
-    <a th:href="@{/responsable/calendrier}">🗓️ Calendriers</a>
-    <a th:href="@{/responsable/statistiques}">📊 Statistiques</a>
-    <a th:href="@{/responsable/support}">📧 Support</a>
+    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil</a>
+    <a th:href="@{/responsable/pharmacie}">🏥 Gestion Pharmacie</a>
+    <a th:href="@{/responsable/calendrier}">🗓️ Créer Calendrier</a>
+    <a th:href="@{/responsable/VoirCalendrier}">📊 Voir Calendrier</a>
+    <a th:href="@{/responsable/support}">📧 Support</a> <br><br><br><br><br><br><br>
+    <footer>
+        <p>&copy; 2025 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>MballoWebDesign</strong></p>
+    </footer>
 </div>
 
 <!-- Contenu principal -->
 <div class="main-content">
-    <h2 class="mb-4">Bienvenue sur votre tableau de bord. </h2>
+    <h2 class="mb-4">Bienvenue sur votre tableau de bord. Voir Calendrier </h2>
 
     <!-- Pour inclure du contenu dynamique avec Thymeleaf -->
 </div>
 
 <!-- Footer -->
-<footer>
-    &copy; 2025 Pharmacie de Garde – Tous droits réservés
-</footer>
+
 
 </body>
 </html>
