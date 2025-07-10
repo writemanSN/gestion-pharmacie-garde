@@ -36,4 +36,11 @@ public class GroupeService {
         return groupeRepository.findByCalendrierId(calendrierId);
     }
 
+    public Groupe save(Groupe groupe) {
+        return groupeRepository.save(groupe);
+    }
+
+    public void deleteAll(List<Groupe> groupes) {
+        groupeRepository.deleteAll(groupes);
+    }
 }

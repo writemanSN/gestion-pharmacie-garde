@@ -31,5 +31,9 @@ public class CalendrierService {
     public List<Calendrier> getAll() {
         return calendrierRepository.findAll();
     }
+    public void supprimerParId(Long id) {
+        calendrierRepository.deleteById(id);
+    }
+
 
 }

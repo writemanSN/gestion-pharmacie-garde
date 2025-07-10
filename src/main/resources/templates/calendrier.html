@@ -101,37 +101,67 @@
 </div>
 
 <!-- Contenu principal -->
+<!-- Contenu principal -->
 <div class="main-content">
     <div class="container mt-5">
-        <h2>📅 Liste des Calendriers</h2>
+        <h2 class="mb-4 text-primary"><i class="bi bi-calendar3"></i> Liste des Calendriers</h2>
 
-        <table class="table table-bordered mt-4">
-            <thead class="table-dark">
-            <tr>
-                <th>Nom du Calendrier</th>
-                <th>Affectation des Groupes</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="cal : ${calendriers}">
-                <td th:text="${cal.nom}">Nom</td>
-                <td>
-                    <ul>
-                        <li th:each="ligne : ${affectations[cal.id]}" th:text="${ligne}"></li>
-                    </ul>
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-primary"
-                       th:href="@{/responsable/VoirCalendrier(calendrierId=${cal.id})}">👁️ Voir</a>
-                    <a class="btn btn-sm btn-success mt-1"
-                       th:href="@{/responsable/calendrier/exportPdf(calendrierId=${cal.id})}">📥 Télécharger</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div th:if="${#lists.isEmpty(calendriers)}" class="alert alert-warning">
+            Aucun calendrier disponible pour l’instant.
+        </div>
+
+        <div th:each="cal : ${calendriers}" class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-journal-text"></i> <span th:text="${cal.nom}">Nom du calendrier</span>
+                </h5>
+                <div>
+                    <a class="btn btn-outline-light btn-sm me-1"
+                       th:href="@{/responsable/VoirCalendrier(calendrierId=${cal.id})}"><i class="bi bi-eye"></i> Voir</a>
+                    <a class="btn btn-outline-info btn-sm"
+                       th:href="@{/responsable/calendrier/imprimer(calendrierId=${cal.id})}"
+                       target="_blank">
+                        <i class="bi bi-printer"></i> Imprimer
+                    </a>
+                    <a class="btn btn-outline-danger btn-sm me-1"
+                       th:href="@{/responsable/calendrier/supprimer(calendrierId=${cal.id})}"
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce calendrier ?');">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
+
+                </div>
+            </div>
+
+            <div class="card-body">
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-light">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Période</th>
+                        <th scope="col">Groupe</th>
+                        <th scope="col">Pharmacies</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ligne : ${affectations[cal.id]}">
+                        <th th:text="${ligne.numeroSemaine}">1</th>
+                        <td>
+                            <span th:text="${ligne.debutSemaine}"></span> au
+                            <span th:text="${ligne.finSemaine}"></span>
+                        </td>
+                        <td th:text="'Groupe ' + ${ligne.groupe.numero}">Groupe 1</td>
+                        <td>
+                            <ul class="mb-0">
+                                <li th:each="ph : ${ligne.groupe.pharmacies}" th:text="${ph.nom}">Pharmacie A</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
-
 </div>
 
 

@@ -1,5 +1,6 @@
 package com.example.gestion_pharmacie_garde.controller;
 
+import com.example.gestion_pharmacie_garde.dto.LigneSemaine;
 import com.example.gestion_pharmacie_garde.model.Calendrier;
 import com.example.gestion_pharmacie_garde.model.Groupe;
 import com.example.gestion_pharmacie_garde.model.Pharmacie;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -205,44 +207,94 @@ public class ResponsableController {
     @GetMapping("/responsable/VoirCalendrier")
     public String voirTousLesCalendriers(Model model, Principal principal) {
         String email = principal.getName();
-        Responsable responsable = responsableService.RechercherByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
 
-        List<Calendrier> calendriers = calendrierService.getAll()
-                .stream()
+        Responsable responsable = responsableService
+                .RechercherByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Responsable non trouvé"));
+
+        List<Calendrier> calendriers = calendrierService.getAll().stream()
                 .filter(c -> c.getResponsable().getId().equals(responsable.getId()))
                 .collect(Collectors.toList());
 
-        Map<Long, List<String>> affectations = new HashMap<>();
+        Map<Long, List<LigneSemaine>> affectations = new HashMap<>();
 
         for (Calendrier calendrier : calendriers) {
             List<Groupe> groupes = groupeService.findByCalendrierId(calendrier.getId());
 
-            List<String> calendrierHebdo = new ArrayList<>();
+            if (groupes.isEmpty()) continue; // Évite la division par zéro
+
+            List<LigneSemaine> lignes = new ArrayList<>();
             LocalDate debut = calendrier.getDateDebut();
             LocalDate fin = calendrier.getDateFin();
             int nbSemaines = (int) ChronoUnit.WEEKS.between(debut, fin);
             int totalGroupes = groupes.size();
 
-            if (totalGroupes == 0) {
-                calendrierHebdo.add("Aucun groupe associé à ce calendrier.");
-            } else {
-                for (int i = 0; i <= nbSemaines; i++) {
-                    Groupe groupe = groupes.get(i % totalGroupes);
-                    LocalDate debutSemaine = debut.plusWeeks(i);
-                    LocalDate finSemaine = debutSemaine.plusDays(6);
-                    calendrierHebdo.add("Semaine " + (i + 1) + ": Groupe " + groupe.getNumero() + " → du " + debutSemaine + " au " + finSemaine);
-                }
+            for (int i = 0; i <= nbSemaines; i++) {
+                Groupe groupe = groupes.get(i % totalGroupes);
+                LocalDate debutSemaine = debut.plusWeeks(i);
+                LocalDate finSemaine = debutSemaine.plusDays(6);
+
+                lignes.add(new LigneSemaine(i + 1, groupe, debutSemaine, finSemaine));
             }
 
-            affectations.put(calendrier.getId(), calendrierHebdo);
+            affectations.put(calendrier.getId(), lignes);
         }
 
+        model.addAttribute("responsable", responsable);
         model.addAttribute("calendriers", calendriers);
         model.addAttribute("affectations", affectations);
 
-        return "calendrier"; // nom du fichier Thymeleaf
+        return "calendrier"; // Nom du fichier Thymeleaf
     }
+
+    @GetMapping("/responsable/calendrier/supprimer")
+    public String supprimerCalendrier(@RequestParam("calendrierId") Long calendrierId, RedirectAttributes redirectAttributes) {
+        try {
+            // 1. Récupérer les groupes liés au calendrier
+            List<Groupe> groupes = groupeService.findByCalendrierId(calendrierId);
+
+            // 2. Supprimer les pharmacies liées à chaque groupe
+            for (Groupe groupe : groupes) {
+                groupe.getPharmacies().clear(); // supprime les liens (relation many-to-many)
+                groupeService.save(groupe); // sauvegarder le groupe modifié
+            }
+
+            // 3. Supprimer les groupes
+            groupeService.deleteAll(groupes);
+
+            // 4. Supprimer le calendrier
+            calendrierService.supprimerParId(calendrierId);
+
+            redirectAttributes.addFlashAttribute("success", "Calendrier supprimé avec succès !");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+        }
+
+        return "redirect:/responsable/VoirCalendrier";
+    }
+
+    @GetMapping("/responsable/calendrier/imprimer")
+    public String imprimerCalendrier(@RequestParam("calendrierId") Long calendrierId, Model model) {
+        Calendrier calendrier = calendrierService.getById(calendrierId);
+        List<Groupe> groupes = groupeService.findByCalendrierId(calendrierId);
+
+        List<LigneSemaine> calendrierHebdo = new ArrayList<>();
+        LocalDate debut = calendrier.getDateDebut();
+        LocalDate fin = calendrier.getDateFin();
+        int nbSemaines = (int) ChronoUnit.WEEKS.between(debut, fin);
+        int totalGroupes = groupes.size();
+
+        for (int i = 0; i <= nbSemaines; i++) {
+            Groupe groupe = groupes.get(i % totalGroupes);
+            LigneSemaine ligne = new LigneSemaine(i + 1, groupe, debut.plusWeeks(i), debut.plusWeeks(i).plusDays(6));
+            calendrierHebdo.add(ligne);
+        }
+
+        model.addAttribute("calendrier", calendrier);
+        model.addAttribute("calendrierHebdo", calendrierHebdo);
+        return "calendrier_print";
+    }
+
 
 
 }
