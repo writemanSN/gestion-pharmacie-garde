@@ -2,7 +2,7 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>BoutiqueGallé</title>
+    <title>Pharmacie de Garde</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap 5 -->
@@ -38,63 +38,6 @@
             text-decoration: underline;
         }
 
-        .hero-section {
-            background: linear-gradient(to right, #357f89, #4CAF50);
-            color: white;
-            min-height: 90vh;
-            padding: 80px 20px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .hero-content h1 {
-            font-size: 3rem;
-            font-weight: bold;
-            animation: fadeInDown 1s ease-in-out;
-        }
-
-        .hero-content p {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            animation: fadeInUp 1.2s ease-in-out;
-        }
-
-        .btn-custom {
-            padding: 12px 30px;
-            font-weight: bold;
-            border-radius: 50px;
-        }
-
-        .btn-outline-light:hover {
-            background-color: white;
-            color: #28a745 !important;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         footer {
             text-align: center;
             margin-top: 50px;
@@ -109,7 +52,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand"  th:href="@{/index}">Pharmacie de Garde</a>
+        <a class="navbar-brand" th:href="@{/index}">Pharmacie de Garde</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarNav" aria-controls="navbarNav"
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -125,9 +68,64 @@
     </div>
 </nav>
 
-<!-- Hero Section -->
+<!-- Contenu principal -->
+<div class="container py-5 mt-5">
+    <h2 class="text-center text-success mb-4" data-aos="fade-down">
+        📅 Pharmacies de Garde –
+        <span th:text="${#temporals.format(dateSemaine, 'dd MMMM yyyy')}"></span>
+    </h2>
 
+    <!-- 🧭 Filtre par commune -->
+    <form method="get" th:action="@{/index}" class="row g-3 justify-content-center mb-4" data-aos="fade-up">
+        <div class="col-md-4">
+            <select name="commune" class="form-select">
+                <option value="">Toutes les communes</option>
+                <option th:each="c : ${communes}"
+                        th:value="${c}"
+                        th:selected="${c == selectedCommune}"
+                        th:text="${c}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100">Filtrer</button>
+        </div>
+    </form>
 
+    <!-- 📋 Pharmacies par commune -->
+    <div th:each="entry : ${pharmaciesParCommune}" data-aos="fade-up">
+        <h4 class="text-primary mt-4" th:text="'🏘️ Commune : ' + ${entry.key}"></h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-success">
+                <tr>
+                    <th>Pharmacie</th>
+                    <th>Adresse</th>
+                    <th>Contact</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ph : ${entry.value}">
+                    <td th:text="${ph.nom}"></td>
+                    <td th:text="${ph.adresse}"></td>
+                    <td th:text="${ph.contact}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ⏭ Bouton Semaine Suivante -->
+    <div class="text-center mt-4" data-aos="zoom-in">
+        <a class="btn btn-outline-success"
+           th:if="${hasNextWeek}"
+           th:href="@{/index(commune=${selectedCommune}, semaineOffset=${semaineOffset + 1})}">
+            🔜 Voir Semaine Suivante
+        </a>
+    </div>
+</div>
+
+<!-- Footer -->
 <footer>
     <p>&copy; 2025 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>MballoWebDesign</strong></p>
 </footer>
@@ -135,7 +133,7 @@
 <!-- Init AOS -->
 <script>
     AOS.init({
-        duration: 1200,
+        duration: 1000,
         once: true
     });
 </script>

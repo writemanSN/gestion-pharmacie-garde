@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.IsoFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,19 +37,19 @@ public class ResponsableController {
     @Autowired
     private GroupeService  groupeService;
 
-    @GetMapping("/responsable/accueil")
-    public String afficherAccueilResponsable(Model model, Principal principal) {
-        String email = principal.getName();
-
-        Responsable responsable = responsableService
-                .RechercherByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
-
-        model.addAttribute("email", email);
-        model.addAttribute("responsable", responsable); // utile si tu veux afficher les infos de l'utilisateur
-
-        return "responsable"; // ne pas faire "redirect:/responsable"
-    }
+//    @GetMapping("/responsable/accueil")
+//    public String afficherAccueilResponsable(Model model, Principal principal) {
+//        String email = principal.getName();
+//
+//        Responsable responsable = responsableService
+//                .RechercherByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
+//
+//        model.addAttribute("email", email);
+//        model.addAttribute("responsable", responsable); // utile si tu veux afficher les infos de l'utilisateur
+//
+//        return "responsable"; // ne pas faire "redirect:/responsable"
+//    }
 
     @GetMapping("/responsable/pharmacie")
     public String afficherAccueilPharmacie(Model model, Principal principal) {
@@ -296,5 +297,134 @@ public class ResponsableController {
     }
 
 
+    @GetMapping("/responsable/accueil")
+    public String voirToutesPharmaciesGarde(@RequestParam(required = false) String commune,
+                                            @RequestParam(defaultValue = "0") int semaineOffset,
+                                            Model model) {
+
+        LocalDate today = LocalDate.now().plusWeeks(semaineOffset);
+        List<String> communes = responsableService.findAllCommunes();
+        model.addAttribute("communes", communes);
+        model.addAttribute("selectedCommune", commune);
+        model.addAttribute("semaineOffset", semaineOffset);
+        model.addAttribute("dateSemaine", today);
+
+        Map<String, List<Pharmacie>> pharmaciesParCommune = new LinkedHashMap<>();
+
+        Optional<Calendrier> calendrierSelectionne = Optional.empty();
+        List<Groupe> groupesSelectionnes = new ArrayList<>();
+
+        for (String c : communes) {
+            Optional<Calendrier> calendrier = calendrierService.findCalendrierByDateAndCommune(today, c);
+            if (calendrier.isPresent()) {
+                List<Groupe> groupes = groupeService.findByCalendrierId(calendrier.get().getId());
+
+                int index = (int) ChronoUnit.WEEKS.between(calendrier.get().getDateDebut(), today);
+                if (!groupes.isEmpty()) {
+                    Groupe groupe = groupes.get(index % groupes.size());
+                    pharmaciesParCommune.put(c, groupe.getPharmacies());
+
+                    // Si c'est la commune sélectionnée, on garde les infos pour vérifier la semaine suivante
+                    if (c.equals(commune)) {
+                        calendrierSelectionne = calendrier;
+                        groupesSelectionnes = groupes;
+                        model.addAttribute("groupe", groupe); // utile pour affichage si besoin
+                        model.addAttribute("calendrier", calendrier.get());
+                    }
+                }
+            }
+        }
+
+        // Si filtre sélectionné : n'afficher que cette commune
+        if (commune != null && !commune.isEmpty()) {
+            pharmaciesParCommune.keySet().removeIf(key -> !key.equals(commune));
+        }
+
+        // Gérer l’affichage conditionnel du bouton “Semaine suivante”
+        boolean hasNextWeek = false;
+        if (calendrierSelectionne.isPresent() && !groupesSelectionnes.isEmpty()) {
+            int totalWeeks = (int) ChronoUnit.WEEKS.between(
+                    calendrierSelectionne.get().getDateDebut(),
+                    calendrierSelectionne.get().getDateFin()
+            ) + 1;
+
+            int currentIndex = (int) ChronoUnit.WEEKS.between(
+                    calendrierSelectionne.get().getDateDebut(), today
+            );
+
+            if (currentIndex < totalWeeks - 1) {
+                hasNextWeek = true;
+            }
+        }
+
+        model.addAttribute("hasNextWeek", hasNextWeek);
+        model.addAttribute("pharmaciesParCommune", pharmaciesParCommune);
+
+        return "responsable";
+    }
+
+
+    @GetMapping("/index")
+    public String voirPharmaciesGardePublique(@RequestParam(required = false) String commune,
+                                              @RequestParam(defaultValue = "0") int semaineOffset,
+                                              Model model) {
+
+        LocalDate today = LocalDate.now().plusWeeks(semaineOffset);
+        List<String> communes = responsableService.findAllCommunes();
+        model.addAttribute("communes", communes);
+        model.addAttribute("selectedCommune", commune);
+        model.addAttribute("semaineOffset", semaineOffset);
+        model.addAttribute("dateSemaine", today);
+
+        Map<String, List<Pharmacie>> pharmaciesParCommune = new LinkedHashMap<>();
+
+        Optional<Calendrier> calendrierSelectionne = Optional.empty();
+        List<Groupe> groupesSelectionnes = new ArrayList<>();
+
+        for (String c : communes) {
+            Optional<Calendrier> calendrier = calendrierService.findCalendrierByDateAndCommune(today, c);
+            if (calendrier.isPresent()) {
+                List<Groupe> groupes = groupeService.findByCalendrierId(calendrier.get().getId());
+
+                int index = (int) ChronoUnit.WEEKS.between(calendrier.get().getDateDebut(), today);
+                if (!groupes.isEmpty()) {
+                    Groupe groupe = groupes.get(index % groupes.size());
+                    pharmaciesParCommune.put(c, groupe.getPharmacies());
+
+                    if (c.equals(commune)) {
+                        calendrierSelectionne = calendrier;
+                        groupesSelectionnes = groupes;
+                        model.addAttribute("groupe", groupe);
+                        model.addAttribute("calendrier", calendrier.get());
+                    }
+                }
+            }
+        }
+
+        if (commune != null && !commune.isEmpty()) {
+            pharmaciesParCommune.keySet().removeIf(key -> !key.equals(commune));
+        }
+
+        boolean hasNextWeek = false;
+        if (calendrierSelectionne.isPresent() && !groupesSelectionnes.isEmpty()) {
+            int totalWeeks = (int) ChronoUnit.WEEKS.between(
+                    calendrierSelectionne.get().getDateDebut(),
+                    calendrierSelectionne.get().getDateFin()
+            ) + 1;
+
+            int currentIndex = (int) ChronoUnit.WEEKS.between(
+                    calendrierSelectionne.get().getDateDebut(), today
+            );
+
+            if (currentIndex < totalWeeks - 1) {
+                hasNextWeek = true;
+            }
+        }
+
+        model.addAttribute("hasNextWeek", hasNextWeek);
+        model.addAttribute("pharmaciesParCommune", pharmaciesParCommune);
+
+        return "index"; // nom de la vue publique (pharmacie-garde.html)
+    }
 
 }

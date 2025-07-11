@@ -6,7 +6,9 @@ import com.example.gestion_pharmacie_garde.repository.CalendrierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CalendrierService {
@@ -34,6 +36,16 @@ public class CalendrierService {
     public void supprimerParId(Long id) {
         calendrierRepository.deleteById(id);
     }
+
+//    public Optional<Calendrier> findCalendrierByDateAndCommune(LocalDate date, String commune) {
+//        return calendrierRepository.findByDateAndCommune(date, commune);
+//    }
+
+    public Optional<Calendrier> findCalendrierByDateAndCommune(LocalDate date, String commune) {
+        List<Calendrier> calendriers = calendrierRepository.findCalendriersByDateAndCommune(date, commune);
+        return calendriers.isEmpty() ? Optional.empty() : Optional.of(calendriers.get(0));
+    }
+
 
 
 }

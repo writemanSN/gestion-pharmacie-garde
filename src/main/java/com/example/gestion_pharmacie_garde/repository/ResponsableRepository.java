@@ -3,6 +3,7 @@ package com.example.gestion_pharmacie_garde.repository;
 
 import com.example.gestion_pharmacie_garde.model.Responsable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
 import java.util.List;
@@ -13,4 +14,7 @@ public interface ResponsableRepository extends JpaRepository<Responsable, Long> 
     List<Responsable> findByRole(String role);
     List<Responsable> findByCommune(String commune);
     boolean existsByEmail(String email);
+    @Query("SELECT DISTINCT r.commune FROM Responsable r")
+    List<String> findDistinctCommunes();
+
 }

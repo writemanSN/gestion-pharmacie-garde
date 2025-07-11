@@ -57,6 +57,10 @@ public class ResponsableService {
         return responsableRepository.findByCommune(commune);
     }
 
+    public List<String> findAllCommunes() {
+        return responsableRepository.findDistinctCommunes();
+    }
+
 
 
 }

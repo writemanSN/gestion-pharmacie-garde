@@ -27,10 +27,10 @@ public class Authentification {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @GetMapping("/index")
-    public String afficherIndex(Model model) {
-        return "index";
-    }
+//    @GetMapping("/index")
+//    public String afficherIndex(Model model) {
+//        return "index";
+//    }
 
     @GetMapping("/index/verificationCode")
     public String afficherVerification(Model model) {
