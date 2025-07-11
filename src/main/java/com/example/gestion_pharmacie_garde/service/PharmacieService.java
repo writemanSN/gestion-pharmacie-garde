@@ -1,6 +1,7 @@
 package com.example.gestion_pharmacie_garde.service;
 
 import com.example.gestion_pharmacie_garde.model.Pharmacie;
+import com.example.gestion_pharmacie_garde.model.Responsable;
 import com.example.gestion_pharmacie_garde.repository.PharmacieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,11 @@ public class PharmacieService {
         return pharmacieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Calendrier introuvable pour l'ID : " + id));
     }
+
+    public List<Pharmacie> getPharmaciesParResponsable(Responsable responsable) {
+        return pharmacieRepository.findByResponsable(responsable);
+    }
+
 
 
 }

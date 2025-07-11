@@ -2,6 +2,7 @@ package com.example.gestion_pharmacie_garde.controller;
 
 import com.example.gestion_pharmacie_garde.model.Responsable;
 import com.example.gestion_pharmacie_garde.repository.CodeSecretRespository;
+import com.example.gestion_pharmacie_garde.repository.ResponsableRepository;
 import com.example.gestion_pharmacie_garde.service.ResponsableService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Optional;
 
 @Controller
 public class Authentification {
@@ -26,6 +28,8 @@ public class Authentification {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ResponsableRepository responsableRepository;
 
 //    @GetMapping("/index")
 //    public String afficherIndex(Model model) {
@@ -102,5 +106,46 @@ public class Authentification {
         responsableService.MettreAJourResponsable(responsable); // À implémenter dans ton service
         return "redirect:/responsable/accueil?modifie=true"; // Redirection vers le profil après modification
     }
-}
+
+    @GetMapping("/index/mdpOublier")
+    public String afficherFormulairemdp() {
+        return "mdpOublier";
+    }
+
+    @PostMapping("/index/verifierInfo")
+    public String verifierInfos(
+            @RequestParam String email,
+            @RequestParam String couleur,
+            Model model) {
+
+        Optional<Responsable> optionalUtilisateur = responsableRepository.findByEmail(email);
+
+        if (optionalUtilisateur.isPresent() &&
+                optionalUtilisateur.get().getCouleur().equalsIgnoreCase(couleur)) {
+
+            model.addAttribute("responsableId", optionalUtilisateur.get().getId());
+            return "changerMotDePasse";
+        } else {
+            return "redirect:/index/mdpOublier?error=true";
+        }
+    }
+
+        @PostMapping("/index/ChangerMdp")
+        public String changerMotDePasse(@RequestParam Long responsableId,
+                @RequestParam String password,
+                Model model) {
+            Responsable responsable = responsableRepository.findById(responsableId)
+                    .orElseThrow(() -> new RuntimeException("Responsable non trouvé"));
+
+
+            if (responsable != null) {
+                responsable.setMotDePasse(passwordEncoder.encode(password));
+                responsableRepository.save(responsable);
+                return "/login"; // confirmation
+            } else {
+                return "/erreurVerification";
+            }
+        }
+
+    }
 

@@ -58,14 +58,16 @@ public class ResponsableController {
         Responsable responsable = responsableService
                 .RechercherByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
-        List<Pharmacie> pharmacies = pharmacieService.getAll();
+
+        List<Pharmacie> pharmacies = pharmacieService.getPharmaciesParResponsable(responsable);
+
         model.addAttribute("pharmacies", pharmacies);
-
         model.addAttribute("email", email);
-        model.addAttribute("responsable", responsable); // utile si tu veux afficher les infos de l'utilisateur
+        model.addAttribute("responsable", responsable);
 
-        return "pharmacie"; // ne pas faire "redirect:/responsable"
+        return "pharmacie";
     }
+
 
     @GetMapping("/responsable/pharmacie/ajouter")
     public String afficherAccueilPharmacieAjouter(Model model, Principal principal) {

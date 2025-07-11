@@ -24,5 +24,6 @@ public class Responsable {
         private Boolean etatCompte;
         private String role;
         private String commune;
+        private String couleur;
 
 }

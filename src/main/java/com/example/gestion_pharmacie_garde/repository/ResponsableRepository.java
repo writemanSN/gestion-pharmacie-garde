@@ -16,5 +16,4 @@ public interface ResponsableRepository extends JpaRepository<Responsable, Long> 
     boolean existsByEmail(String email);
     @Query("SELECT DISTINCT r.commune FROM Responsable r")
     List<String> findDistinctCommunes();
-
 }
