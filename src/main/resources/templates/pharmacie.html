@@ -90,11 +90,10 @@
 
 <!-- Sidebar -->
 <div class="sidebar">
-    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil</a>
+    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil Public</a>
     <a th:href="@{/responsable/pharmacie}">🏥 Gestion Pharmacie</a>
     <a th:href="@{/responsable/calendrier}">🗓️ Créer Calendrier</a>
-    <a th:href="@{/responsable/VoirCalendrier}">📊 Voir Calendrier</a>
-    <a th:href="@{/responsable/support}">📧 Support</a> <br><br><br><br><br><br><br>
+    <a th:href="@{/responsable/VoirCalendrier}">📊 Mes Calendriers</a><br><br><br><br><br><br><br>
     <footer>
         <p>&copy; 2025 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>MballoWebDesign</strong></p>
     </footer>
@@ -115,7 +114,7 @@
             <table class="table table-striped table-hover">
                 <thead class="table-dark text-center">
                 <tr>
-                    <th>ID</th>
+<!--                    <th>ID</th>-->
                     <th>Nom</th>
                     <th>Adresse</th>
                     <th>Contact</th>
@@ -124,7 +123,7 @@
                 </thead>
                 <tbody class="text-center">
                 <tr th:each="pharmacie : ${pharmacies}">
-                    <td th:text="${pharmacie.id}">1</td>
+<!--                    <td th:text="${pharmacie.id}">1</td>-->
                     <td th:text="${pharmacie.nom}">Pharmacie X</td>
                     <td th:text="${pharmacie.adresse}">Adresse Y</td>
                     <td th:text="${pharmacie.contact}">77 123 45 67</td>

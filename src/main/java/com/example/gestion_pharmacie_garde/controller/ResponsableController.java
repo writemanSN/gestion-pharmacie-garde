@@ -11,11 +11,20 @@ import com.example.gestion_pharmacie_garde.service.PharmacieService;
 import com.example.gestion_pharmacie_garde.service.ResponsableService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -162,15 +171,22 @@ public class ResponsableController {
     }
 
     @GetMapping("/responsable/calendrier/groupes")
-    public String afficherFormulaireGroupes(@RequestParam Long calendrierId, Model model) {
+    public String afficherFormulaireGroupes(@RequestParam Long calendrierId, Model model, Principal principal) {
         Calendrier calendrier = calendrierService.trouverParId(calendrierId);
 
-        model.addAttribute("calendrier", calendrier);
-        model.addAttribute("pharmacies", pharmacieService.getAll());
-        model.addAttribute("nombreGroupes", calendrier.getNombreGroupes());
+        String email = principal.getName();
+        Responsable responsable = responsableService
+                .RechercherByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Responsable non trouvé pour l'email : " + email));
 
-        return "groupesCalendrier"; // la page avec les selects multiples
+        model.addAttribute("calendrier", calendrier);
+        model.addAttribute("pharmacies", pharmacieService.getPharmaciesParResponsable(responsable));
+        model.addAttribute("nombreGroupes", calendrier.getNombreGroupes());
+        model.addAttribute("email", email);
+
+        return "groupesCalendrier";
     }
+
 
     @PostMapping("/responsable/calendrier/groupes/enregistrer")
     public String enregistrerGroupes(@RequestParam Long calendrierId, HttpServletRequest request) {
@@ -428,5 +444,29 @@ public class ResponsableController {
 
         return "index"; // nom de la vue publique (pharmacie-garde.html)
     }
+
+    @GetMapping("/responsable/calendrier/telecharger")
+    public ResponseEntity<Resource> telechargerCalendrier(@RequestParam("calendrierId") Long calendrierId) {
+
+        // Exemple : récupération du fichier généré (PDF, Excel, etc.)
+        Path cheminFichier = Paths.get("documents/calendrier_" + calendrierId + ".pdf");
+
+        if (!Files.exists(cheminFichier)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            Resource resource = new UrlResource(cheminFichier.toUri());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        } catch (MalformedURLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 
 }

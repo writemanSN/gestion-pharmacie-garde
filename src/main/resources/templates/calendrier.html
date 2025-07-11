@@ -90,11 +90,10 @@
 
 <!-- Sidebar -->
 <div class="sidebar">
-    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil</a>
+    <a th:href="@{/responsable/accueil}" class="active">🏠 Accueil Public</a>
     <a th:href="@{/responsable/pharmacie}">🏥 Gestion Pharmacie</a>
     <a th:href="@{/responsable/calendrier}">🗓️ Créer Calendrier</a>
-    <a th:href="@{/responsable/VoirCalendrier}">📊 Voir Calendrier</a>
-    <a th:href="@{/responsable/support}">📧 Support</a> <br><br><br><br><br><br><br>
+    <a th:href="@{/responsable/VoirCalendrier}">📊 Mes Calendriers</a><br><br><br><br><br><br><br>
     <footer>
         <p>&copy; 2025 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>MballoWebDesign</strong></p>
     </footer>
@@ -116,8 +115,10 @@
                     <i class="bi bi-journal-text"></i> <span th:text="${cal.nom}">Nom du calendrier</span>
                 </h5>
                 <div>
-                    <a class="btn btn-outline-light btn-sm me-1"
-                       th:href="@{/responsable/VoirCalendrier(calendrierId=${cal.id})}"><i class="bi bi-eye"></i> Voir</a>
+<!--                    <a class="btn btn-outline-primary btn-sm"-->
+<!--                       th:href="@{/responsable/calendrier/telecharger(calendrierId=${cal.id})}">-->
+<!--                        <i class="bi bi-download"></i> Télécharger-->
+<!--                    </a>-->
                     <a class="btn btn-outline-info btn-sm"
                        th:href="@{/responsable/calendrier/imprimer(calendrierId=${cal.id})}"
                        target="_blank">
