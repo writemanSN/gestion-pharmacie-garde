@@ -118,8 +118,8 @@
 
     <form th:action="@{/doLogin}" method="post">
 
-        <div th:if="${param.error}" class="alert alert-danger text-center fw-bold">
-            ❌ Coordonnées incorrectes. Veuillez réessayer.
+        <div th:if="${param.error != null and param.error != 'compte_inactif'}" class="alert alert-danger text-center fw-bold">
+            ❌ Email ou mot de passe incorrect / Abonnement non renouvelé.
         </div>
 
         <div class="mb-3">
@@ -132,7 +132,7 @@
         </div>
 
         <button type="submit" class="btn btn-success btn-custom">Se connecter</button>
-        <a th:href="@{/mdpOublier}" class="forgot-link">Mot de passe oublié ?</a>
+        <a th:href="@{/index/mdpOublier}" class="forgot-link">Mot de passe oublié ?</a>
     </form>
 </div>
 

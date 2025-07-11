@@ -24,6 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         Responsable user = responsableRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Responsable introuvable"));
 
+        if (user.getEtatCompte() == null || !user.getEtatCompte()) {
+            // Compte inactif
+            throw new CompteInactiveException("Votre abonnement n'est pas actif. Veuillez le régler.");
+        }
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getMotDePasse(),
