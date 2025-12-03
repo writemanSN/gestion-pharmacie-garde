@@ -93,7 +93,8 @@
         <h3 class="text-center mb-4">Inscription Responsable</h3>
         <form th:action="@{/index/register}" method="post" th:object="${responsable}">
             <div class="mb-3">
-                <input type="email" th:field="*{email}" placeholder="Adresse Email" class="form-control" required/>
+                <input type="email" th:field="*{email}" placeholder="Adresse Email" class="form-control" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                       title="Veuillez entrer une adresse email valide"/>
             </div>
             <div class="mb-3">
                 <input type="password" th:field="*{motDePasse}" placeholder="Mot de passe" class="form-control" required/>
