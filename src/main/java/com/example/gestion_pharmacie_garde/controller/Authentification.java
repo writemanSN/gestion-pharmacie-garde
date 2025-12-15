@@ -36,6 +36,11 @@ public class Authentification {
 //        return "index";
 //    }
 
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/index"; // redirige automatiquement vers /index
+    }
+
     @GetMapping("/index/verificationCode")
     public String afficherVerification(Model model) {
         return "verification";

@@ -32,6 +32,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/",
+                                "/index.html",
                                 "/js/**",
                                 "/css/**",
                                 "/images/**",
@@ -39,8 +41,8 @@ public class SecurityConfig {
                                 "/bootstrap-icons/**", // pour les icônes
                                 "/cdn.jsdelivr.net/**", // au cas où tu charges via CDN
                                 "/favicon.ico",
-                                "/login/**",
                                 "/index/**",
+                                "/login/**",
                                 "/verification/**",
                                 "/profil/**",
                                 "/inscription/**",
