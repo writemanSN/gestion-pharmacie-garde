@@ -114,7 +114,19 @@
             <a th:href="@{/responsable/calendrier}" class="nav-link">🗓️ Créer Calendrier</a>
             <a th:href="@{/responsable/VoirCalendrier}" class="nav-link">📊 Mes Calendriers</a>
 
+            <hr>
+            <!-- Menu utilisateur mobile -->
+            <div class="dropdown mt-2">
+                <a class="btn btn-outline-secondary  w-100 dropdown-toggle" href="#" role="button" id="userDropdownMobile" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i> <span th:text="${email}">email@example.com</span>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="userDropdownMobile">
+                    <li><a class="dropdown-item" th:href="@{/profil}">Profil</a></li>
+                    <li><a class="dropdown-item" th:href="@{/logout}">Déconnexion</a></li>
+                </ul>
+            </div>
         </div>
+
     </div>
 
     <!-- Sidebar desktop -->
@@ -139,7 +151,7 @@
     <!-- 🧭 Filtre par commune -->
     <form method="get" th:action="@{/responsable/accueil}" class="row g-3 justify-content-center mb-4">
         <div class="col-md-4">
-            <select name="commune" class="form-select">
+            <select name="commune" id="communeSelect" class="form-select">
                 <option value="">Toutes les communes</option>
                 <option th:each="c : ${communes}"
                         th:value="${c}"
@@ -191,6 +203,14 @@
 <footer>
     <p>&copy; 2026 Pharmacie de Garde. Tous droits réservés. | Développé par <strong>NEMESIAX</strong></p>
 </footer>
+
+<script>
+    const selectCommune = document.getElementById('communeSelect');
+    selectCommune.addEventListener('change', function() {
+        this.form.submit(); // soumet le formulaire automatiquement
+    });
+</script>
+
 
 </body>
 </html>

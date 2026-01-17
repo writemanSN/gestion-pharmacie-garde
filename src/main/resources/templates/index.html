@@ -126,7 +126,7 @@
     <!-- 🧭 Filtre par commune -->
     <form method="get" th:action="@{/index}" class="row g-3 justify-content-center mb-4" data-aos="fade-up">
         <div class="col-md-4">
-            <select name="commune" class="form-select">
+            <select id="communeSelect" name="commune" class="form-select">
                 <option value="">Toutes les communes</option>
                 <option th:each="c : ${communes}"
                         th:value="${c}"
@@ -181,6 +181,11 @@
     AOS.init({
         duration: 1000,
         once: true
+    });
+
+    const selectCommune = document.getElementById('communeSelect');
+    selectCommune.addEventListener('change', function() {
+        this.form.submit(); // soumet le formulaire automatiquement
     });
 </script>
 <footer>
